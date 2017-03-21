@@ -26,7 +26,6 @@ package eeureka
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/twinj/uuid"
 	"log"
 	"net"
 	"os"
@@ -34,6 +33,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/twinj/uuid"
 )
 
 var instanceId string
@@ -174,7 +175,7 @@ func startHeartbeat(appName string) {
 
 func heartbeat(appName string) {
 	heartbeatAction := HttpAction{
-		Url:         discoveryServerUrl + "/eureka/apps/" + appName + "/" + getLocalIP(),
+		Url:         discoveryServerUrl + "/eureka/apps/" + appName + "/" + buildInstanceId(appName),
 		Method:      "PUT",
 		ContentType: "application/json;charset=UTF-8",
 	}
@@ -186,12 +187,16 @@ func deregister(appName string) {
 	fmt.Println("Trying to deregister application " + appName + "...")
 	// Deregister
 	deregisterAction := HttpAction{
-		Url:         discoveryServerUrl + "/eureka/apps/" + appName + "/" + getLocalIP(),
+		Url:         discoveryServerUrl + "/eureka/apps/" + appName + "/" + buildInstanceId(appName),
 		ContentType: "application/json;charset=UTF-8",
 		Method:      "DELETE",
 	}
 	doHttpRequest(deregisterAction)
 	fmt.Println("Deregistered application " + appName + ", exiting. Check Eureka...")
+}
+
+func buildInstanceId(appName string) string {
+	return fmt.Sprintf("%s:%s:%s", getLocalIP(), appName, instanceId)
 }
 
 func getLocalIP() string {
